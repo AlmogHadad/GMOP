@@ -1,13 +1,15 @@
-from gymnasium_env import UAVInterceptorEnv
+# Global imports
+from gymnasium_env import AlgorithmsEnv
 import numpy as np
+# Local imports
 from blue_object import BlueObject
 from red_object import RedObject
 
 
 class SimulationManager:
     def __init__(self):
-        self.env = UAVInterceptorEnv()
-        self.env.reset()
+        self.env = AlgorithmsEnv()
+
         self.blue_objects: dict[int, BlueObject] = {}
         self.red_objects: dict[int, RedObject] = {}
         self.time = 0
@@ -15,7 +17,7 @@ class SimulationManager:
     def run_simulation(self):
         for idx in range(1000):
             action = self.env.action_space.sample()
-            observation, reward, terminated, info = self.env.step(action)
+            observation, reward, terminated, info, _ = self.env.step(action)
 
             if terminated:
                 self.env.reset()
@@ -25,7 +27,7 @@ class SimulationManager:
                 print(f"Step: {idx}, Reward: {reward}")
 
     def step(self, action):
-        obs, reward, done, _ = self.env.step(action)
+        obs, reward, done, info, _ = self.env.step(action)
         return obs, reward, done, _
 
     def reset(self):

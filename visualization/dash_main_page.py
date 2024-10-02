@@ -4,7 +4,6 @@ _dash_renderer._set_react_version("18.2.0")
 from dash.dependencies import Input, Output
 import dash_mantine_components as dmc
 import numpy as np
-
 # local imports
 from simulation_manager import SimulationManager
 from dash_utils import create_graph
