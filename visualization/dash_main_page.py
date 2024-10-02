@@ -6,7 +6,6 @@ import dash_mantine_components as dmc
 import numpy as np
 
 # local imports
-from gymnasium_env import UAVInterceptorEnv
 from simulation_manager import SimulationManager
 from dash_utils import create_graph
 
