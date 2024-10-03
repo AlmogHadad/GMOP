@@ -17,9 +17,13 @@ class AlgorithmsEnv(gym.Env):
         return np.concatenate((self.interceptor_position, self.target_position))
 
     def step(self, action):
-        self.interceptor_position += action
+        # red object step
         self.target_position += self.target_velocity
+
+        # blue object step
+        self.interceptor_position += action
         distance = np.linalg.norm(self.interceptor_position - self.target_position)
         reward = -distance
         done = distance < 1
+
         return np.concatenate((self.interceptor_position, self.target_position)), reward, done, {}, {}
