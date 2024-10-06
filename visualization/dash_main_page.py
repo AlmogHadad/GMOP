@@ -6,7 +6,6 @@ import dash_mantine_components as dmc
 import numpy as np
 
 # local imports
-from gymnasium_env import UAVInterceptorEnv
 from simulation_manager import SimulationManager
 from dash_utils import create_graph
 
@@ -72,7 +71,7 @@ def reset_simulation(n_clicks):
     simulation_manager.reset()
     # create obs of the reset environment
     obs = np.concatenate((simulation_manager.env.interceptor_position, simulation_manager.env.target_position))
-    return create_graph(obs)
+    return create_graph(obs, simulation_manager.time)
 
 
 # take one step
@@ -83,7 +82,7 @@ def one_step(n_clicks):
     action = simulation_manager.take_action()
     obs, reward, done, _ = simulation_manager.step(action)
 
-    return create_graph(obs)
+    return create_graph(obs, simulation_manager.time)
 
 
 @app.callback(Output('live-update-graph', 'figure', allow_duplicate=True),
@@ -92,7 +91,7 @@ def one_step(n_clicks):
 def update_graph(n):
     action = simulation_manager.take_action()
     obs, reward, done, _ = simulation_manager.step(action)
-    return create_graph(obs)
+    return create_graph(obs, simulation_manager.time)
 
 
 simulation_manager = SimulationManager()
