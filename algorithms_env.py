@@ -33,15 +33,19 @@ class AlgorithmsEnv(gym.Env):
         for blue_object in self.blue_object_list:
             blue_object.step(action)
 
-        # check if the blue object has reached the red object
-        done = np.linalg.norm(self.blue_object_list[0].position - self.red_object_list[0].position) < 1
+        # check if there is objects alive
+        done = True
+        for red_object in self.red_object_list:
+            if red_object.i_am_alive:
+                done = False
+                break
 
         return np.concatenate((self.blue_object_list[0].position, self.red_object_list[0].position)), 0, done, {}, {}
 
     def take_action(self):
         # Calculate the direction vector from the interceptor to the target
-        red_trajectory_position, red_trajectory_time = tp.red_trajectory_prediction_(self.red_object_list[0].position,
-                                                                                     self.red_object_list[0].velocity)
+        red_trajectory_position, red_trajectory_time = tp.red_trajectory_prediction(self.red_object_list[0].position,
+                                                                                    self.red_object_list[0].velocity)
         # choose which trajectory to follow based on the distance
         closest_index = 0
         closest_distance = tp.blue_trajectory_prediction_time(self.blue_object_list[0].position,
@@ -57,14 +61,5 @@ class AlgorithmsEnv(gym.Env):
                 closest_index = i
 
         action = (red_trajectory_position[closest_index] - self.blue_object_list[0].position).astype(np.float64)
-
-        # Normalize the direction vector
-        distance = np.linalg.norm(action)
-        if distance == 0:
-            print('Done!')
-            return np.zeros_like(action)  # No movement if already at the target
-
-        # Scale the action to move a maximum of 3 units in each direction
-        action = (action / distance) * min(self.blue_object_list[0].max_speed, distance)
 
         return action

@@ -1,21 +1,7 @@
 import numpy as np
-from red_object import RedObject
 
 
-def red_trajectory_prediction(red_object: RedObject, red_type: str = 'CM', steps: int = 30) -> np.ndarray:
-    if red_type == 'CM': # preform linear prediction
-        trajectory = np.zeros((steps, 3))
-        current_position = red_object.position
-        velocity = red_object.velocity
-        for i in range(steps):
-            trajectory[i] = current_position + velocity
-            current_position += velocity
-        return trajectory
-    else:
-        raise ValueError("Invalid Red Type")
-
-
-def red_trajectory_prediction_(red_object_position, red_object_velocity, red_type: str = 'CM', steps: int = 30) -> tuple[list[int], list[int]]:
+def red_trajectory_prediction(red_object_position, red_object_velocity, red_type: str = 'CM', steps: int = 30) -> tuple[list[int], list[int]]:
     if red_type == 'CM': # preform linear prediction
         trajectory = []
         current_position = red_object_position.copy()

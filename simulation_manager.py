@@ -1,6 +1,7 @@
 from algorithms_env import AlgorithmsEnv
 from blue_object import BlueObject
 from red_object import RedObject
+import numpy as np
 
 
 class SimulationManager:
@@ -20,9 +21,23 @@ class SimulationManager:
             if idx % 100 == 0:
                 print(f"Step: {idx}, Reward: {reward}")
 
+    def kill_manager(self):
+        done = True
+        # check if there is blue object that is near red object, if so, kill the both
+        for blue_object in self.env.blue_object_list:
+            for red_object in self.env.red_object_list:
+                if np.linalg.norm(blue_object.position - red_object.position) < 1:
+                    blue_object.i_am_alive = False
+                    red_object.i_am_alive = False
+                else:
+                    done = False
+        return done
+
     def step(self, action):
         self.time += 1
         obs, reward, done, info, _ = self.env.step(action)
+        done = self.kill_manager()
+
         return obs, reward, done, _
 
     def reset(self):
