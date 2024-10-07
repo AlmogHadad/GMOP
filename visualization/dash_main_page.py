@@ -70,7 +70,7 @@ def pause_simulation(n_clicks):
 def reset_simulation(n_clicks):
     simulation_manager.reset()
     # create obs of the reset environment
-    obs = np.concatenate((simulation_manager.env.interceptor_position, simulation_manager.env.target_position))
+    obs = np.concatenate((simulation_manager.env.blue_object_list[0].position, simulation_manager.env.red_object_list[0].position))
     return create_graph(obs, simulation_manager.time)
 
 
@@ -79,21 +79,28 @@ def reset_simulation(n_clicks):
                 Input('one-step-button', 'n_clicks'),
                 prevent_initial_call=True)
 def one_step(n_clicks):
-    action = simulation_manager.take_action()
+    action = simulation_manager.env.take_action()
     obs, reward, done, _ = simulation_manager.step(action)
 
     return create_graph(obs, simulation_manager.time)
 
 
 @app.callback(Output('live-update-graph', 'figure', allow_duplicate=True),
+              Output('interval-component', 'disabled', allow_duplicate=True),
               Input('interval-component', 'n_intervals'),
               prevent_initial_call=True)
 def update_graph(n):
-    action = simulation_manager.take_action()
+    action = simulation_manager.env.take_action()
     obs, reward, done, _ = simulation_manager.step(action)
-    return create_graph(obs, simulation_manager.time)
+
+    return create_graph(obs, simulation_manager.time), done
 
 
-simulation_manager = SimulationManager()
+from red_object import RedObject
+from blue_object import BlueObject
+
+red_object = RedObject()
+blue_object = BlueObject()
+simulation_manager = SimulationManager([red_object], [blue_object])
 if __name__ == '__main__':
     app.run_server(debug=True)

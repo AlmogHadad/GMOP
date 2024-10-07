@@ -1,29 +1,70 @@
 # Global Imports
 import gymnasium as gym
 import numpy as np
+from red_object import RedObject
+from blue_object import BlueObject
+import trajectoy_pradiction as tp
 
 
 class AlgorithmsEnv(gym.Env):
-    def __init__(self):
+    def __init__(self, red_object_list: list[RedObject], blue_object_list: list[BlueObject]):
         super(AlgorithmsEnv, self).__init__()
 
-        self.target_position = np.array([-50, -50, 50])
-        self.interceptor_position = np.array([0, 0, 0], dtype=np.float64)
-        self.target_velocity = np.array([1, 0, 0])
+        self.red_object_list: list[RedObject] = red_object_list
+        self.blue_object_list: list[BlueObject] = blue_object_list
 
     def reset(self, **kwargs):
-        self.interceptor_position = np.array([0, 0, 0], dtype=np.float64)
-        self.target_position = np.array([-50, -50, 50])
-        return np.concatenate((self.interceptor_position, self.target_position))
+        # reset red object
+        for red_object in self.red_object_list:
+            red_object.reset()
+
+        # reset blue object
+        for blue_object in self.blue_object_list:
+            blue_object.reset()
+
+        return np.concatenate((self.blue_object_list[0].position, self.red_object_list[0].position))
 
     def step(self, action):
         # red object step
-        self.target_position += self.target_velocity
+        for red_object in self.red_object_list:
+            red_object.step()
 
         # blue object step
-        self.interceptor_position += action
-        distance = np.linalg.norm(self.interceptor_position - self.target_position)
-        reward = -distance
-        done = distance < 1
+        for blue_object in self.blue_object_list:
+            blue_object.step(action)
 
-        return np.concatenate((self.interceptor_position, self.target_position)), reward, done, {}, {}
+        # check if the blue object has reached the red object
+        done = np.linalg.norm(self.blue_object_list[0].position - self.red_object_list[0].position) < 1
+
+        return np.concatenate((self.blue_object_list[0].position, self.red_object_list[0].position)), 0, done, {}, {}
+
+    def take_action(self):
+        # Calculate the direction vector from the interceptor to the target
+        red_trajectory_position, red_trajectory_time = tp.red_trajectory_prediction_(self.red_object_list[0].position,
+                                                                                     self.red_object_list[0].velocity)
+        # choose which trajectory to follow based on the distance
+        closest_index = 0
+        closest_distance = tp.blue_trajectory_prediction_time(self.blue_object_list[0].position,
+                                                              self.blue_object_list[0].max_speed,
+                                                              red_trajectory_position[0])
+        # find the closest point in the red trajectory
+        for i in range(1, len(red_trajectory_position)):
+            blue_object_prediction_time = tp.blue_trajectory_prediction_time(self.blue_object_list[0].position,
+                                                                             self.blue_object_list[0].max_speed,
+                                                                             red_trajectory_position[i])
+            if closest_distance > abs(blue_object_prediction_time - red_trajectory_time[i]):
+                closest_distance = abs(blue_object_prediction_time - red_trajectory_time[i])
+                closest_index = i
+
+        action = (red_trajectory_position[closest_index] - self.blue_object_list[0].position).astype(np.float64)
+
+        # Normalize the direction vector
+        distance = np.linalg.norm(action)
+        if distance == 0:
+            print('Done!')
+            return np.zeros_like(action)  # No movement if already at the target
+
+        # Scale the action to move a maximum of 3 units in each direction
+        action = (action / distance) * min(self.blue_object_list[0].max_speed, distance)
+
+        return action

@@ -7,8 +7,8 @@ class BlueObject:
                  launch_site_position: np.ndarray = np.array([0, 0, 0], dtype=np.float64),
                  max_speed: float = 3):
         self.id = blue_id
-        self.launch_site_position = launch_site_position
-        self.position = launch_site_position
+        self.launch_site_position = launch_site_position.copy()
+        self.position = launch_site_position.copy()
         self.max_speed = max_speed
 
     def step(self, action):
@@ -27,7 +27,10 @@ class BlueObject:
         return self.position
 
     def reset(self):
-        self.position = self.launch_site_position
+        print(f'lanch site position: {self.launch_site_position}')
+        print(f'before position: {self.position}')
+        self.position = self.launch_site_position.copy()
+        print(f'after position: {self.position}')
         return self.position
 
     def get_obs(self):
