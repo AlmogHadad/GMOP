@@ -22,17 +22,21 @@ class SimulationManager:
                 print(f"Step: {idx}, Reward: {reward}")
 
     def kill_manager(self):
+        done = True
         # check if there is blue object that is near red object, if so, kill the both
         for blue_object in self.env.blue_object_list:
             for red_object in self.env.red_object_list:
                 if np.linalg.norm(blue_object.position - red_object.position) < 1:
                     blue_object.i_am_alive = False
                     red_object.i_am_alive = False
+                else:
+                    done = False
+        return done
 
     def step(self, action):
         self.time += 1
-        self.kill_manager()
         obs, reward, done, info, _ = self.env.step(action)
+        done = self.kill_manager()
 
         return obs, reward, done, _
 

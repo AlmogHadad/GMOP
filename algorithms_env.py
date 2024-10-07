@@ -62,12 +62,4 @@ class AlgorithmsEnv(gym.Env):
 
         action = (red_trajectory_position[closest_index] - self.blue_object_list[0].position).astype(np.float64)
 
-        # Normalize the direction vector
-        distance = np.linalg.norm(action)
-        if distance == 0:
-            return np.zeros_like(action)  # No movement if already at the target
-
-        # Scale the action to move a maximum of 3 units in each direction
-        action = (action / distance) * min(self.blue_object_list[0].max_speed, distance)
-
         return action
