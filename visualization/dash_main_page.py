@@ -22,7 +22,15 @@ app.layout = dmc.MantineProvider(
                     dmc.Button('One Step', id='one-step-button', n_clicks=0),
                     dmc.Button('Pause / Resume Simulation', id='pause-simulation-button', n_clicks=0),
                     dmc.Button('Reset Simulation', id='reset-simulation-button', n_clicks=0),
-                    dmc.Button('Switch to 2D/3D View', id='switch-view-button', n_clicks=0)
+                    dmc.Button('Switch to 2D/3D View', id='switch-view-button', n_clicks=0),
+                    dmc.Text('Add Blue Object'),
+                    dmc.TextInput(id='blue-position', placeholder='Position (x, y, z)'),
+                    dmc.TextInput(id='blue-max-speed', placeholder='Max Speed (default: 3)'),
+                    dmc.Button('Add Blue Object', id='add-blue-button', n_clicks=0),
+                    dmc.Text('Add Red Object'),
+                    dmc.TextInput(id='red-position', placeholder='Position (x, y, z)'),
+                    dmc.TextInput(id='red-velocity', placeholder='Velocity (x, y, z)'),
+                    dmc.Button('Add Red Object', id='add-red-button', n_clicks=0)
                 ],
                     gap='s',
                     align='left',
@@ -35,7 +43,7 @@ app.layout = dmc.MantineProvider(
                             dcc.Graph(id='live-update-graph', style={'height': '100vh'}),
                             dcc.Interval(
                                 id='interval-component',
-                                interval=100,  # Update every 100 milliseconds
+                                interval=500,  # Update every 100 milliseconds
                                 n_intervals=0,
                                 disabled=True
                             ),
@@ -46,6 +54,47 @@ app.layout = dmc.MantineProvider(
 
     ])
 )
+
+@app.callback(
+    Output('live-update-graph', 'figure', allow_duplicate=True),
+    Output('red-position', 'value'),
+    Output('red-velocity', 'value'),
+    Input('add-red-button', 'n_clicks'),
+    State('red-position', 'value'),
+    State('red-velocity', 'value'),
+    prevent_initial_call=True
+)
+def add_red_object(n_clicks, position, velocity):
+    global view_3d
+    if n_clicks > 0:
+        # Parse input strings for position and velocity
+        position = np.array(list(map(float, position.split(','))))
+        velocity = np.array(list(map(float, velocity.split(','))))
+        # Create a new RedObject and add to simulation
+        new_red = RedObject(position, velocity)
+        simulation_manager.env.red_object_list.append(new_red)
+    return create_graph(simulation_manager, view_3d), '', ''
+
+
+@app.callback(
+    Output('live-update-graph', 'figure', allow_duplicate=True),
+    Output('blue-position', 'value'),
+    Output('blue-max-speed', 'value'),
+    Input('add-blue-button', 'n_clicks'),
+    State('blue-position', 'value'),
+    State('blue-max-speed', 'value'),
+    prevent_initial_call=True
+)
+def add_red_object(n_clicks, position, max_speed):
+    global view_3d
+    if n_clicks > 0:
+        # Parse input strings for position and velocity
+        position = np.array(list(map(float, position.split(','))))
+        max_speed = float(max_speed)
+        # Create a new RedObject and add to simulation
+        new_blue = BlueObject(position, max_speed)
+        simulation_manager.env.blue_object_list.append(new_blue)
+    return create_graph(simulation_manager, view_3d), '', ''
 
 
 # Callback for the initial graph
@@ -126,3 +175,6 @@ red_object1 = RedObject()
 red_object2 = RedObject(np.array([-50, -30, 50]), np.array([0, 1, 0]))
 blue_object = BlueObject()
 simulation_manager = SimulationManager([red_object1, red_object2], [blue_object])
+
+if __name__ == '__main__':
+    app.run_server(debug=True, port=8051)

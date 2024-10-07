@@ -29,6 +29,16 @@ class RedObject:
     def get_obs(self):
         return self.position
 
+    import plotly.graph_objs as go
+
     def plot_object(self):
-    # add in the description of the object the id, position and velocity
-        return go.Scatter3d(x=[self.position[0]], y=[self.position[1]], z=[self.position[2]], mode='markers', marker=dict(size=10, color='red'), name=f'Red Object:\n id: {self.id} \n position: {self.position} \n velocity: {self.velocity}')
+        marker_symbol = 'circle' if self.i_am_alive else 'x'
+        return go.Scatter3d(
+            x=[self.position[0]],
+            y=[self.position[1]],
+            z=[self.position[2]],
+            mode='markers',
+            marker=dict(size=10, symbol=marker_symbol, color='red'),
+            text=f'Object:\n id: {self.id} \n position: {self.position} \n velocity: {self.velocity}',
+            showlegend=False
+        )

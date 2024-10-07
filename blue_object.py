@@ -41,7 +41,13 @@ class BlueObject:
         return self.position
 
     def plot_object(self):
-        return go.Scatter3d(x=[self.position[0]], y=[self.position[1]], z=[self.position[2]], mode='markers', marker=dict(size=10, color='blue'), name=f'Blue Object:\n id: {self.id} \n position: {self.position} \n max_speed: {self.max_speed}')
+        if not self.i_am_alive:
+            return go.Scatter3d()
+        return go.Scatter3d(x=[self.position[0]], y=[self.position[1]], z=[self.position[2]],
+                            mode='markers',
+                            marker=dict(size=10, color='blue'),
+                            text=f'Blue Object:\n id: {self.id} \n position: {self.position} \n max_speed: {self.max_speed}',
+                            showlegend=False)
 
     def plot_launch_site(self):
         # make green square for the launch site
@@ -51,5 +57,6 @@ class BlueObject:
             z=[self.launch_site_position[2]],
             mode='markers',
             marker=dict(size=10, color='green', symbol='square'),  # Use square markers
-            name=f'Launch Site: id: {self.id} position: {self.launch_site_position}'
+            text=f'Launch Site: id: {self.id} position: {self.launch_site_position}',
+            showlegend=False
         )
