@@ -7,8 +7,7 @@ import numpy as np
 
 # local imports
 from simulation_manager import SimulationManager
-from dash_utils import create_graph
-
+from visualization.dash_utils import create_graph
 
 # Initialize the Dash app
 app = Dash(external_stylesheets=dmc.styles.ALL)
@@ -127,5 +126,3 @@ red_object1 = RedObject()
 red_object2 = RedObject(np.array([-50, -30, 50]), np.array([0, 1, 0]))
 blue_object = BlueObject()
 simulation_manager = SimulationManager([red_object1, red_object2], [blue_object])
-if __name__ == '__main__':
-    app.run_server(debug=True)
