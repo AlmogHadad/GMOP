@@ -30,8 +30,8 @@ class AlgorithmsEnv(gym.Env):
             red_object.step()
 
         # blue object step
-        for blue_object in self.blue_object_list:
-            blue_object.step(action)
+        for idx, blue_object in enumerate(self.blue_object_list):
+            blue_object.step(action[idx])
 
         # check if there is objects alive
         done = True
@@ -43,23 +43,25 @@ class AlgorithmsEnv(gym.Env):
         return np.concatenate((self.blue_object_list[0].position, self.red_object_list[0].position)), 0, done, {}, {}
 
     def take_action(self):
-        # Calculate the direction vector from the interceptor to the target
-        red_trajectory_position, red_trajectory_time = tp.red_trajectory_prediction(self.red_object_list[0].position,
-                                                                                    self.red_object_list[0].velocity)
-        # choose which trajectory to follow based on the distance
-        closest_index = 0
-        closest_distance = tp.blue_trajectory_prediction_time(self.blue_object_list[0].position,
-                                                              self.blue_object_list[0].max_speed,
-                                                              red_trajectory_position[0])
-        # find the closest point in the red trajectory
-        for i in range(1, len(red_trajectory_position)):
-            blue_object_prediction_time = tp.blue_trajectory_prediction_time(self.blue_object_list[0].position,
-                                                                             self.blue_object_list[0].max_speed,
-                                                                             red_trajectory_position[i])
-            if closest_distance > abs(blue_object_prediction_time - red_trajectory_time[i]):
-                closest_distance = abs(blue_object_prediction_time - red_trajectory_time[i])
-                closest_index = i
+        actions = []
+        for i in range(min(len(self.red_object_list), len(self.blue_object_list))):
+            # Calculate the direction vector from the interceptor to the target
+            red_trajectory_position, red_trajectory_time = tp.red_trajectory_prediction(self.red_object_list[i].position,
+                                                                                        self.red_object_list[i].velocity)
+            # choose which trajectory to follow based on the distance
+            closest_index = 0
+            closest_distance = tp.blue_trajectory_prediction_time(self.blue_object_list[i].position,
+                                                                  self.blue_object_list[i].max_speed,
+                                                                  red_trajectory_position[i])
+            # find the closest point in the red trajectory
+            for j in range(1, len(red_trajectory_position)):
+                blue_object_prediction_time = tp.blue_trajectory_prediction_time(self.blue_object_list[i].position,
+                                                                                 self.blue_object_list[i].max_speed,
+                                                                                 red_trajectory_position[j])
+                if closest_distance > abs(blue_object_prediction_time - red_trajectory_time[j]):
+                    closest_distance = abs(blue_object_prediction_time - red_trajectory_time[j])
+                    closest_index = j
 
-        action = (red_trajectory_position[closest_index] - self.blue_object_list[0].position).astype(np.float64)
+            actions.append((red_trajectory_position[closest_index] - self.blue_object_list[i].position).astype(np.float64))
 
-        return action
+        return actions
