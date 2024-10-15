@@ -5,6 +5,7 @@ This project visualizes UAV interceptor simulations using Dash and Plotly. It in
 <div align="center">
     <img src="Resources/run_example.gif" alt="UAV Interceptor Visualization">
 </div>
+
 ## Features
 
 - **3D Map**: Visualizes the UAVs and their launch sites in a 3D space.
