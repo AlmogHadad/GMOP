@@ -10,6 +10,7 @@ class BlueObjectBase:
         self.id = BlueObjectBase._id_counter
         self.launch_site_position = launch_site_position.copy()
         self.position = launch_site_position.copy()
+        self.current_velocity = np.array([0, 0, 0], dtype=np.float64)
         self.max_speed = max_speed
         self.i_am_alive = True
 
@@ -29,6 +30,7 @@ class BlueObjectBase:
             action = (action / distance) * min(self.max_speed, distance)
 
             self.position += action
+            self.current_velocity = action
         return self.position
 
     def reset(self):
