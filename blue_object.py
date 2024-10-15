@@ -2,18 +2,18 @@ import numpy as np
 import plotly.graph_objs as go
 
 
-class BlueObject:
+class BlueObjectBase:
     _id_counter = 1  # Class-level variable to track the unique ID
     def __init__(self,
                  launch_site_position: np.ndarray = np.array([0, 0, 0], dtype=np.float64),
                  max_speed: float = 3):
-        self.id = BlueObject._id_counter
+        self.id = BlueObjectBase._id_counter
         self.launch_site_position = launch_site_position.copy()
         self.position = launch_site_position.copy()
         self.max_speed = max_speed
         self.i_am_alive = True
 
-        BlueObject._id_counter += 1 # Increment the ID counter
+        BlueObjectBase._id_counter += 1 # Increment the ID counter
 
     def step(self, action):
         if self.i_am_alive:
@@ -60,3 +60,29 @@ class BlueObject:
             text=f'Launch Site: id: {self.id} position: {self.launch_site_position}',
             showlegend=False
         )
+
+class BlueObject(BlueObjectBase):
+    def __init__(self,
+                 launch_site_position: np.ndarray = np.array([0, 0, 0], dtype=np.float64),
+                 max_speed: float = 3):
+        super().__init__(launch_site_position, max_speed)
+
+    def step(self, action):
+        # TODO: Implement the logic to calculate the next position of the blue object
+        super().step(action)
+
+    def reset(self):
+        # TODO: Implement the logic to reset the blue object
+        super().reset()
+
+    def get_obs(self):
+        # TODO: Implement the logic to get the observation of the blue object
+        return super().get_obs()
+
+    def plot_object(self):
+        # TODO: Implement the logic to plot the blue object
+        return super().plot_object()
+
+    def plot_launch_site(self):
+        # TODO: Implement the logic to plot the launch site
+        return super().plot_launch_site()
