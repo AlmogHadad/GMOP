@@ -2,7 +2,9 @@
 
 This project visualizes UAV interceptor simulations using Dash and Plotly. It includes both 3D and 2D maps to display the positions and movements of blue and red objects in the simulation.
 
-![UAV Interceptor Visualization](Resources/run_example.gif)
+<div align="center">
+    <img src="Resources/run_example.gif" alt="UAV Interceptor Visualization">
+</div>
 
 ## Features
 
