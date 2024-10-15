@@ -40,7 +40,7 @@ class BlueObjectBase:
     def get_obs(self):
         return self.position
 
-    def plot_object(self):
+    def plot_object_3d(self):
         if not self.i_am_alive:
             return go.Scatter3d()
         return go.Scatter3d(x=[self.position[0]], y=[self.position[1]], z=[self.position[2]],
@@ -49,12 +49,33 @@ class BlueObjectBase:
                             text=f'Blue Object:\n id: {self.id} \n position: {self.position} \n max_speed: {self.max_speed}',
                             showlegend=False)
 
-    def plot_launch_site(self):
+    def plot_object_2d(self):
+        if not self.i_am_alive:
+            return go.Scatter()
+        return go.Scatter(x=[self.position[0]], y=[self.position[1]],
+                          mode='markers',
+                          marker=dict(size=10, color='blue'),
+                          text=f'Blue Object:\n id: {self.id} \n position: {self.position} \n max_speed: {self.max_speed}',
+                          showlegend=False)
+
+
+    def plot_launch_site_3d(self):
         # make green square for the launch site
         return go.Scatter3d(
             x=[self.launch_site_position[0]],
             y=[self.launch_site_position[1]],
             z=[self.launch_site_position[2]],
+            mode='markers',
+            marker=dict(size=10, color='green', symbol='square'),  # Use square markers
+            text=f'Launch Site: id: {self.id} position: {self.launch_site_position}',
+            showlegend=False
+        )
+
+    def plot_launch_site_2d(self):
+        # make green square for the launch site
+        return go.Scatter(
+            x=[self.launch_site_position[0]],
+            y=[self.launch_site_position[1]],
             mode='markers',
             marker=dict(size=10, color='green', symbol='square'),  # Use square markers
             text=f'Launch Site: id: {self.id} position: {self.launch_site_position}',
@@ -79,10 +100,18 @@ class BlueObject(BlueObjectBase):
         # TODO: Implement the logic to get the observation of the blue object
         return super().get_obs()
 
-    def plot_object(self):
+    def plot_object_2d(self):
         # TODO: Implement the logic to plot the blue object
-        return super().plot_object()
+        return super().plot_object_2d()
 
-    def plot_launch_site(self):
+    def plot_object_3d(self):
+        # TODO: Implement the logic to plot the blue object
+        return super().plot_object_3d()
+
+    def plot_launch_site_2d(self):
         # TODO: Implement the logic to plot the launch site
-        return super().plot_launch_site()
+        return super().plot_launch_site_2d()
+
+    def plot_launch_site_3d(self):
+        # TODO: Implement the logic to plot the launch site
+        return super().plot_launch_site_3d()

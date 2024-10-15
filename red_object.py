@@ -29,12 +29,23 @@ class RedObjectBase:
     def get_obs(self):
         return self.position
 
-    def plot_object(self):
+    def plot_object_3d(self):
         marker_symbol = 'circle' if self.i_am_alive else 'x'
         return go.Scatter3d(
             x=[self.position[0]],
             y=[self.position[1]],
             z=[self.position[2]],
+            mode='markers',
+            marker=dict(size=10, symbol=marker_symbol, color='red'),
+            text=f'Object:\n id: {self.id} \n position: {self.position} \n velocity: {self.velocity}',
+            showlegend=False
+        )
+
+    def plot_object_2d(self):
+        marker_symbol = 'circle' if self.i_am_alive else 'x'
+        return go.Scatter(
+            x=[self.position[0]],
+            y=[self.position[1]],
             mode='markers',
             marker=dict(size=10, symbol=marker_symbol, color='red'),
             text=f'Object:\n id: {self.id} \n position: {self.position} \n velocity: {self.velocity}',
@@ -60,6 +71,10 @@ class RedObject(RedObjectBase):
         # TODO: Implement the logic to get the observation of the red object
         return super().get_obs()
 
-    def plot_object(self):
+    def plot_object_2d(self):
         # TODO: Implement the logic to plot the red object
-        return super().plot_object()
+        return super().plot_object_2d()
+
+    def plot_object_3d(self):
+        # TODO: Implement the logic to plot the red object
+        return super().plot_object_3d()

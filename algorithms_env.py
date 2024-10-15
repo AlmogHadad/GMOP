@@ -64,4 +64,7 @@ class AlgorithmsEnv(gym.Env):
 
             actions.append((red_trajectory_position[closest_index] - self.blue_object_list[i].position).astype(np.float64))
 
+        # extend the actions to the length of the blue object list
+        actions.extend([np.array([0, 0, 0], dtype=np.float64) for _ in range(len(self.blue_object_list) - len(actions))])
+
         return actions

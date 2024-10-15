@@ -1,5 +1,5 @@
 # global imports
-from dash import Dash, html, dcc, _dash_renderer, State
+from dash import Dash, html, dcc, _dash_renderer, State, no_update
 _dash_renderer._set_react_version("18.2.0")
 from dash.dependencies import Input, Output
 import dash_mantine_components as dmc
@@ -22,9 +22,8 @@ app.layout = dmc.MantineProvider(
                     dmc.Button('One Step', id='one-step-button', n_clicks=0),
                     dmc.Button('Pause / Resume Simulation', id='pause-simulation-button', n_clicks=0),
                     dmc.Button('Reset Simulation', id='reset-simulation-button', n_clicks=0),
-                    dmc.Button('Switch to 2D/3D View', id='switch-view-button', n_clicks=0),
                     dmc.Text('Add Blue Object'),
-                    dmc.TextInput(id='blue-position', placeholder='Position (x, y, z)'),
+                    dmc.TextInput(id='blue-position', placeholder='Position (x, y)'),
                     dmc.TextInput(id='blue-max-speed', placeholder='Max Speed (default: 3)'),
                     dmc.Button('Add Blue Object', id='add-blue-button', n_clicks=0),
                     dmc.Text('Add Red Object'),
@@ -40,7 +39,7 @@ app.layout = dmc.MantineProvider(
             ),
 
             dmc.GridCol(children=[
-                            dcc.Graph(id='live-update-graph', style={'height': '100vh'}),
+                            dcc.Graph(id='live-update-graph', style={'height': '95vh'}),
                             dcc.Interval(
                                 id='interval-component',
                                 interval=500,  # Update every 100 milliseconds
@@ -67,6 +66,9 @@ app.layout = dmc.MantineProvider(
 def add_red_object(n_clicks, position, velocity):
     global view_3d
     if n_clicks > 0:
+        if position == '' or velocity == '':
+            return no_update
+
         # Parse input strings for position and velocity
         position = np.array(list(map(float, position.split(','))))
         velocity = np.array(list(map(float, velocity.split(','))))
@@ -89,8 +91,15 @@ def add_red_object(n_clicks, position, max_speed):
     global view_3d
     if n_clicks > 0:
         # Parse input strings for position and velocity
+        if position == '':
+            return no_update
+
         position = np.array(list(map(float, position.split(','))))
+
+        if max_speed == '':
+            max_speed = 3
         max_speed = float(max_speed)
+
         # Create a new RedObject and add to simulation
         new_blue = BlueObject(position, max_speed)
         simulation_manager.env.blue_object_list.append(new_blue)
@@ -100,20 +109,9 @@ def add_red_object(n_clicks, position, max_speed):
 # Callback for the initial graph
 @app.callback(Output('live-update-graph', 'figure'),
               Input('interval-component', 'n_intervals'),
-              State('switch-view-button', 'n_clicks'))
-def initial_graph(n, switch_clicks):
+              )
+def initial_graph(n):
     global view_3d
-    return create_graph(simulation_manager, view_3d=view_3d)
-
-
-# Add a callback to switch between 2D and 3D
-@app.callback(Output('live-update-graph', 'figure', allow_duplicate=True),
-              Input('switch-view-button', 'n_clicks'),
-              State('live-update-graph', 'figure'),
-              prevent_initial_call=True)
-def switch_view(n_clicks, figure):
-    global view_3d
-    view_3d = not view_3d
     return create_graph(simulation_manager, view_3d=view_3d)
 
 
