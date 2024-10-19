@@ -52,6 +52,12 @@ class RedObjectBase:
             showlegend=False
         )
 
+    def to_dict(self):
+        return {
+            'position': self.position.tolist(),
+            'velocity': self.velocity.tolist(),
+        }
+
 
 class RedObject(RedObjectBase):
     def __init__(self,

@@ -2,6 +2,9 @@ import math
 import numpy as np
 import plotly.graph_objs as go
 from simulation_manager import SimulationManager
+from dash import html
+from dash import dcc
+import dash_mantine_components as dmc
 
 
 def create_graph(simulation_manager: SimulationManager):
@@ -68,9 +71,7 @@ def velocity_to_degrees(vx, vy):
 def create_leaflet_map(simulation_manager: SimulationManager):
     import dash_leaflet as dl
 
-    red_markers = []
-    blue_markers = []
-    ls_markers = []
+    markers = []
 
     # Iterate over blue objects and create markers
     for blue_object in simulation_manager.env.blue_object_list:
@@ -78,7 +79,7 @@ def create_leaflet_map(simulation_manager: SimulationManager):
             position = blue_object.position[:2]  # Assuming 2D position (x, y)
             # plot blue object only if its not in the launch site
             if np.linalg.norm(blue_object.position - blue_object.launch_site_position) > 1:
-                blue_markers.append(
+                markers.append(
                     dl.Marker(
                         position=position.tolist(),
                         icon={
@@ -89,7 +90,7 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                     )
                 )
 
-            ls_markers.append(
+            markers.append(
                 dl.Marker(
                     position=blue_object.launch_site_position[:2].tolist(),
                     icon={
@@ -104,7 +105,7 @@ def create_leaflet_map(simulation_manager: SimulationManager):
     for red_object in simulation_manager.env.red_object_list:
         if red_object.i_am_alive:
             position = red_object.position[:2]  # Assuming 2D position (x, y)
-            red_markers.append(
+            markers.append(
                 dl.Marker(
                     position=position.tolist(),
                     icon={
@@ -112,12 +113,25 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                         "iconSize": [20, 20],
                         "iconAnchor": [20, 20],
                     },
+                    children=[
+                        dl.Popup(
+                            children=[
+                                html.Div([
+                                    html.Label("Altitude:"),
+                                    dcc.Input(
+                                        # id=f'altitude-input-{red_object.id}',  # Unique ID for each red object
+                                        id={"type": "red_object_alt", "index": red_object.id},
+                                        type='number',
+                                        value=red_object.position[2],
+                                        step=1
+                                    ),
+                                    dmc.Button("Update Altitude",  id={"type": "update-altitude", "index": red_object.id})
+                                ])
+                            ]
+                        )
+                    ]
                 )
             )
 
     # Combine markers and return them as map children
-    return [
-        dl.LayerGroup(children=blue_markers, id="blue-object-markers"),
-        dl.LayerGroup(children=red_markers, id="red-object-markers"),
-        dl.LayerGroup(children=ls_markers, id="launch-site-markers"),
-    ]
+    return dl.LayerGroup(children=markers, id="blue-object-markers")

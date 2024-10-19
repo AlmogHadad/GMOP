@@ -84,6 +84,13 @@ class BlueObjectBase:
             showlegend=False
         )
 
+    def to_dict(self):
+        return {
+            "position": self.position.tolist(),
+            "max_speed": self.max_speed,
+        }
+
+
 class BlueObject(BlueObjectBase):
     def __init__(self,
                  launch_site_position: np.ndarray = np.array([0, 0, 0], dtype=np.float64),
