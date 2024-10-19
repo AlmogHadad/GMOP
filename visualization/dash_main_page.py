@@ -30,6 +30,7 @@ app.layout = dmc.MantineProvider(
                     dmc.Button('One Step', id='one-step-button', n_clicks=0),
                     dmc.Button('Pause / Resume Simulation', id='pause-simulation-button', n_clicks=0),
                     dmc.Button('Reset Simulation', id='reset-simulation-button', n_clicks=0),
+                    dmc.Button('Clear Objects', id='clear-objects-button', n_clicks=0),
                     dmc.Button('Add Blue Object', id='add-blue-button', n_clicks=0),
                     dmc.Button('Add Red Object', id='add-red-button', n_clicks=0)
                 ],
@@ -80,6 +81,23 @@ app.layout = dmc.MantineProvider(
         html.Div(id='red_object_alt_callback')
     ]),
 )
+
+
+# Callback to clear all objects
+@app.callback(
+    Output('live-update-graph', 'figure', allow_duplicate=True),
+    Output('object-markers', 'children', allow_duplicate=True),
+    Input('clear-objects-button', 'n_clicks'),
+    prevent_initial_call=True
+)
+def clear_objects(n_clicks):
+    if n_clicks is None or n_clicks == 0:
+        return no_update, no_update
+
+    simulation_manager.env.red_object_list = []
+    simulation_manager.env.blue_object_list = []
+
+    return create_graph(simulation_manager), create_leaflet_map(simulation_manager)
 
 
 @callback(
