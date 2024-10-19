@@ -98,6 +98,22 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                         "iconSize": [20, 20],
                         "iconAnchor": [20, 20],
                     },
+                    children=[
+                        dl.Popup(
+                            children=[
+                                html.Div([
+                                    html.Label("Speed:"),
+                                    dcc.Input(
+                                        id={"type": "blue_object_speed", "index": blue_object.id},
+                                        type='text',
+                                        value=f'{blue_object.max_speed}'
+                                    ),
+                                    dmc.Button("Update Object",
+                                               id={"type": "blue_object_update", "index": blue_object.id})
+                                ])
+                            ]
+                        )
+                    ]
                 )
             )
 
@@ -119,13 +135,18 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                                 html.Div([
                                     html.Label("Altitude:"),
                                     dcc.Input(
-                                        # id=f'altitude-input-{red_object.id}',  # Unique ID for each red object
                                         id={"type": "red_object_alt", "index": red_object.id},
                                         type='number',
                                         value=red_object.position[2],
                                         step=1
                                     ),
-                                    dmc.Button("Update Altitude",  id={"type": "update-altitude", "index": red_object.id})
+                                    html.Label("Velocity:"),
+                                    dcc.Input(
+                                        id={"type": "red_object_velocity", "index": red_object.id},
+                                        type='text',
+                                        value=f'{red_object.velocity[0]}, {red_object.velocity[1]}, {red_object.velocity[2]}'
+                                    ),
+                                    dmc.Button("Update Object",  id={"type": "update-altitude", "index": red_object.id})
                                 ])
                             ]
                         )
