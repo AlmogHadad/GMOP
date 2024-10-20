@@ -234,7 +234,7 @@ def update_red_object(new_alt, new_vel):
     for i, red_object in enumerate(simulation_manager.env.red_object_list):
         # Check if this is the triggered input and if n_clicks is 0
         if ctx.triggered_id['index'] == red_object.id:
-            if new_alt[i] == 0 and new_vel[i] is not None:
+            if new_vel[i] is None or new_alt[i] is None:
                 return no_update  # Do nothing if button hasn't been clicked
 
             red_object.position[2] = new_alt[i]  # Update the altitude
