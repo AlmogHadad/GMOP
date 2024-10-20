@@ -107,9 +107,7 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                                         id={"type": "blue_object_speed", "index": blue_object.id},
                                         type='text',
                                         value=f'{blue_object.max_speed}'
-                                    ),
-                                    dmc.Button("Update Object",
-                                               id={"type": "blue_object_update", "index": blue_object.id})
+                                    )
                                 ])
                             ]
                         )
@@ -140,13 +138,13 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                                         value=red_object.position[2],
                                         step=1
                                     ),
+                                    html.Br(),
                                     html.Label("Velocity:"),
                                     dcc.Input(
                                         id={"type": "red_object_velocity", "index": red_object.id},
                                         type='text',
                                         value=f'{red_object.velocity[0]}, {red_object.velocity[1]}, {red_object.velocity[2]}'
                                     ),
-                                    dmc.Button("Update Object",  id={"type": "update-altitude", "index": red_object.id})
                                 ])
                             ]
                         )

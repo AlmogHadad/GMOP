@@ -19,6 +19,17 @@ app = Dash(external_stylesheets=dmc.styles.ALL)
 
 simulation_manager = SimulationManager([], [])
 
+# Reference point (center of the map in Leaflet)
+center_lat, center_lng = 32.0, 35.0
+
+# Convert bounds from meters to degrees
+latitude_bound = [-100 / 111000, 100 / 111000]  # ~[-0.0009, 0.0009]
+longitude_bound = [-100 / 93000, 100 / 93000]  # ~[-0.00108, 0.00108]
+
+# Calculate southwest and northeast corners of the bounds
+southwest_bound = [center_lat + latitude_bound[0], center_lng + longitude_bound[0]]
+northeast_bound = [center_lat + latitude_bound[1], center_lng + longitude_bound[1]]
+
 app.layout = dmc.MantineProvider(
     html.Div([
         dmc.Grid([
@@ -43,8 +54,9 @@ app.layout = dmc.MantineProvider(
 
             dmc.GridCol(children=[
                 dl.Map(id="leaflet-map", style={'height': '95vh', 'backgroundColor': 'white'},
-                       center=[0, 0],
-                       zoom=0,
+                       center=[center_lat, center_lng],
+                       bounds=[southwest_bound, northeast_bound],
+                       zoom=2,
                        crs="Simple",
                        children=[
                            dl.LayerGroup(id="object-markers"),
@@ -96,6 +108,7 @@ def clear_objects(n_clicks):
 
     simulation_manager.env.red_object_list = []
     simulation_manager.env.blue_object_list = []
+    simulation_manager.time = 0
 
     return create_graph(simulation_manager), create_leaflet_map(simulation_manager)
 
@@ -154,7 +167,7 @@ edit_mode = None
      Input('add-red-button', 'n_clicks')],
     prevent_initial_call=True
 )
-def add_marker(n_clicks_blue, n_clicks_red):
+def add_marker(_, __):
     global edit_mode
     ctx = callback_context
 
@@ -204,23 +217,13 @@ def add_objects(geojson):
 @app.callback(
     Output('live-update-graph', 'figure', allow_duplicate=True),
     Output('object-markers', 'children', allow_duplicate=True),
-    Input({"type": "update-altitude", "index": ALL}, "n_clicks"),
-    State({"type": "red_object_alt", "index": ALL}, "value"),
-    State({"type": "red_object_velocity", "index": ALL}, "value"),
+    Input({"type": "red_object_alt", "index": ALL}, "value"),
+    Input({"type": "red_object_velocity", "index": ALL}, "value"),
     prevent_initial_call=True
 )
-def update_red_object(input_alts, new_alt, new_vel):
+def update_red_object(new_alt, new_vel):
     # Check if there are no red objects, return early
     if len(simulation_manager.env.red_object_list) == 0:
-        return no_update, no_update
-
-    # check if any button was clicked (half of args are n_clicks)
-    is_clicked = False
-    for n_clicks in input_alts:
-        if n_clicks:
-            is_clicked = True
-            break
-    if not is_clicked:
         return no_update, no_update
 
     ctx = callback_context
@@ -231,7 +234,7 @@ def update_red_object(input_alts, new_alt, new_vel):
     for i, red_object in enumerate(simulation_manager.env.red_object_list):
         # Check if this is the triggered input and if n_clicks is 0
         if ctx.triggered_id['index'] == red_object.id:
-            if input_alts[i] == 0:
+            if new_alt[i] == 0 and new_vel[i] is not None:
                 return no_update  # Do nothing if button hasn't been clicked
 
             red_object.position[2] = new_alt[i]  # Update the altitude
@@ -246,22 +249,12 @@ def update_red_object(input_alts, new_alt, new_vel):
 @app.callback(
     Output('live-update-graph', 'figure', allow_duplicate=True),
     Output('object-markers', 'children', allow_duplicate=True),
-    Input({"type": "blue_object_update", "index": ALL}, "n_clicks"),
-    State({"type": "blue_object_speed", "index": ALL}, "value"),
+    Input({"type": "blue_object_speed", "index": ALL}, "value"),
     prevent_initial_call=True
 )
-def update_blue_object(input_clicks, new_speed):
+def update_blue_object(new_speed):
     # Check if there are no blue objects, return early
     if len(simulation_manager.env.blue_object_list) == 0:
-        return no_update, no_update
-
-    # check if any button was clicked (half of args are n_clicks)
-    is_clicked = False
-    for n_clicks in input_clicks:
-        if n_clicks:
-            is_clicked = True
-            break
-    if not is_clicked:
         return no_update, no_update
 
     ctx = callback_context
@@ -272,10 +265,13 @@ def update_blue_object(input_clicks, new_speed):
     for i, blue_object in enumerate(simulation_manager.env.blue_object_list):
         # Check if this is the triggered input and if n_clicks is 0
         if ctx.triggered_id['index'] == blue_object.id:
-            if input_clicks[i] == 0:
+            if new_speed[i] == 0 or new_speed[i] is None:
                 return no_update
 
-            blue_object.max_speed = float(new_speed[i])  # Update the max speed
+            try:
+                blue_object.max_speed = float(new_speed[i])  # Update the max speed
+            except ValueError:
+                return no_update
             break
 
     return create_graph(simulation_manager), create_leaflet_map(simulation_manager)
@@ -310,8 +306,7 @@ def pause_simulation(n_clicks):
               Output('object-markers', 'children', allow_duplicate=True),
               Input('reset-simulation-button', 'n_clicks'),
               prevent_initial_call=True)
-def reset_simulation(n_clicks):
-    print('Resetting simulation')
+def reset_simulation(_):
     simulation_manager.reset()
     # create obs of the reset environment
     return create_graph(simulation_manager), create_leaflet_map(simulation_manager)
