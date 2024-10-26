@@ -105,8 +105,15 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                                     html.Label("Speed:"),
                                     dcc.Input(
                                         id={"type": "blue_object_speed", "index": blue_object.id},
-                                        type='text',
-                                        value=f'{blue_object.max_speed}'
+                                        type='number',
+                                        placeholder=f'{blue_object.max_speed}'
+                                    ),
+                                    html.Br(),
+                                    dmc.Button(
+                                        children="Delete",
+                                        color="red",
+                                        size="sm",
+                                        id={"type": "blue_object_delete", "index": blue_object.id},
                                     )
                                 ])
                             ]
@@ -143,8 +150,29 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                                     dcc.Input(
                                         id={"type": "red_object_velocity", "index": red_object.id},
                                         type='text',
-                                        value=f'{red_object.velocity[0]}, {red_object.velocity[1]}, {red_object.velocity[2]}'
+                                        value=f'{red_object.velocity[0]: .1f}, {red_object.velocity[1]: .1f}, {red_object.velocity[2]: .1f}'
                                     ),
+                                    html.Br(),
+                                    html.Label("Angle:"),
+                                    dcc.Input(
+                                        id={"type": "red_object_angle", "index": red_object.id},
+                                        type='number',
+                                        value=f'{velocity_to_degrees(red_object.velocity[0], red_object.velocity[1]): .1f}'
+                                    ),
+                                    html.Br(),
+                                    html.Label("Speed:"),
+                                    dcc.Input(
+                                        id={"type": "red_object_speed", "index": red_object.id},
+                                        type='number',
+                                        value=f'{np.linalg.norm(red_object.velocity[:2]): .1f}',
+                                    ),
+                                    html.Br(),
+                                    dmc.Button(
+                                        children="Delete",
+                                        color="red",
+                                        size="sm",
+                                        id={"type": "red_object_delete", "index": red_object.id},
+                                    )
                                 ])
                             ]
                         )
@@ -154,3 +182,27 @@ def create_leaflet_map(simulation_manager: SimulationManager):
 
     # Combine markers and return them as map children
     return dl.LayerGroup(children=markers, id="blue-object-markers")
+
+
+def calc_velocity_from_angle(current_velocity, new_angle) -> np.ndarray:
+    # Calculate the magnitude of the current velocity
+    magnitude = np.linalg.norm(current_velocity[:2])
+
+    # Calculate the new x and y components of the velocity
+    vx = magnitude * math.cos(math.radians(new_angle))
+    vy = magnitude * math.sin(math.radians(new_angle))
+
+    # Return the new velocity vector
+    return np.array([vx, vy, current_velocity[2]])
+
+
+def calc_velocity_from_speed(current_velocity, new_speed) -> np.ndarray:
+    # Calculate the magnitude of the current velocity
+    magnitude = np.linalg.norm(current_velocity[:2])
+
+    # Calculate the new x and y components of the velocity
+    vx = (current_velocity[0] / magnitude) * new_speed
+    vy = (current_velocity[1] / magnitude) * new_speed
+
+    # Return the new velocity vector
+    return np.array([vx, vy, current_velocity[2]])

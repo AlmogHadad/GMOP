@@ -10,7 +10,7 @@ import dash_leaflet as dl
 
 # local imports
 from simulation_manager import SimulationManager
-from visualization.dash_utils import create_graph, create_leaflet_map
+from visualization.dash_utils import create_graph, create_leaflet_map, calc_velocity_from_angle, calc_velocity_from_speed
 from red_object import RedObject
 from blue_object import BlueObject
 
@@ -214,14 +214,25 @@ def add_objects(geojson):
     return create_graph(simulation_manager), create_leaflet_map(simulation_manager), dict(mode="remove", action="clear all")
 
 
+def is_valid_number(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+
 @app.callback(
     Output('live-update-graph', 'figure', allow_duplicate=True),
     Output('object-markers', 'children', allow_duplicate=True),
     Input({"type": "red_object_alt", "index": ALL}, "value"),
     Input({"type": "red_object_velocity", "index": ALL}, "value"),
+    Input({"type": "red_object_angle", "index": ALL}, "value"),
+    Input({"type": "red_object_speed", "index": ALL}, "value"),
+    Input({"type": "red_object_delete", "index": ALL}, "n_clicks"),
     prevent_initial_call=True
 )
-def update_red_object(new_alt, new_vel):
+def update_red_object(new_alt, new_vel, new_angle, new_speed, new_delete):
     # Check if there are no red objects, return early
     if len(simulation_manager.env.red_object_list) == 0:
         return no_update, no_update
@@ -238,8 +249,27 @@ def update_red_object(new_alt, new_vel):
                 return no_update  # Do nothing if button hasn't been clicked
 
             red_object.position[2] = new_alt[i]  # Update the altitude
-            velocity = np.array(new_vel[i].split(','), dtype=np.float64)
-            red_object.velocity = velocity
+            if ctx.triggered_id['type'] == 'red_object_velocity':
+                splitted_velocity = new_vel[i].split(',')
+                # check the all the 3 values is valid numbers
+
+                if new_vel[i] is None or len(splitted_velocity) != 3 or not all(is_valid_number(v) for v in splitted_velocity):
+                    return no_update
+
+                red_object.velocity = np.array(new_vel[i].split(','), dtype=np.float64)
+            elif ctx.triggered_id['type'] == 'red_object_angle':
+                if new_angle[i] is None:
+                    return no_update
+                red_object.velocity = calc_velocity_from_angle(red_object.velocity, new_angle[i])
+
+            elif ctx.triggered_id['type'] == 'red_object_speed':
+                if new_speed[i] is None:
+                    return no_update
+                red_object.velocity = calc_velocity_from_speed(red_object.velocity, new_speed[i])
+
+            elif ctx.triggered_id['type'] == 'red_object_delete':
+                # remove the red object
+                simulation_manager.env.red_object_list.pop(i)
             break
 
     return create_graph(simulation_manager), create_leaflet_map(simulation_manager)
@@ -250,9 +280,10 @@ def update_red_object(new_alt, new_vel):
     Output('live-update-graph', 'figure', allow_duplicate=True),
     Output('object-markers', 'children', allow_duplicate=True),
     Input({"type": "blue_object_speed", "index": ALL}, "value"),
+    Input({"type": "blue_object_delete", "index": ALL}, "n_clicks"),
     prevent_initial_call=True
 )
-def update_blue_object(new_speed):
+def update_blue_object(new_speed, new_delete):
     # Check if there are no blue objects, return early
     if len(simulation_manager.env.blue_object_list) == 0:
         return no_update, no_update
@@ -265,14 +296,18 @@ def update_blue_object(new_speed):
     for i, blue_object in enumerate(simulation_manager.env.blue_object_list):
         # Check if this is the triggered input and if n_clicks is 0
         if ctx.triggered_id['index'] == blue_object.id:
-            if new_speed[i] == 0 or new_speed[i] is None:
-                return no_update
+            if ctx.triggered_id['type'] == 'blue_object_speed':
+                if new_speed[i] == 0 or new_speed[i] is None:
+                    return no_update
 
-            try:
-                blue_object.max_speed = float(new_speed[i])  # Update the max speed
-            except ValueError:
-                return no_update
-            break
+                try:
+                    blue_object.max_speed = float(new_speed[i])  # Update the max speed
+                except ValueError:
+                    return no_update
+                break
+
+            elif ctx.triggered_id['type'] == 'blue_object_delete':
+                simulation_manager.env.blue_object_list.pop(i)
 
     return create_graph(simulation_manager), create_leaflet_map(simulation_manager)
 
