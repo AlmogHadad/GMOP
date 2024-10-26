@@ -20,8 +20,24 @@ This project visualizes UAV interceptor simulations using Dash and Plotly. It in
     git clone https://github.com/AlmogHadad/GMOP.git
     cd GMOP
     ```
+2. Create a new virtual environment (recommended):
 
-2. Install the required dependencies:
+    ```sh
+    python -m venv venv
+    ```
+    
+3. Activate the virtual environment:
+
+    - On Windows:
+        ```sh
+        venv\Scripts\activate
+        ```
+    - On Linux:
+        ```sh
+        source venv/bin/activate
+        ```
+        
+4. Install the required dependencies:
     ```sh
     pip install -r requirements.txt
     ```
