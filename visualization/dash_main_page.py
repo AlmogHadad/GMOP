@@ -31,67 +31,83 @@ southwest_bound = [center_lat + latitude_bound[0], center_lng + longitude_bound[
 northeast_bound = [center_lat + latitude_bound[1], center_lng + longitude_bound[1]]
 
 app.layout = dmc.MantineProvider(
-    html.Div([
-        dmc.Grid([
-            dmc.GridCol(children=[
-                dmc.Stack(children=[
-                    dmc.Button("Load Input", id="load-input-button"),
-                    dmc.Button("Save Input", id="save-input-button"),
-                    dmc.Button('Run Simulation', id='run-simulation-button', n_clicks=0),
-                    dmc.Button('One Step', id='one-step-button', n_clicks=0),
-                    dmc.Button('Pause / Resume Simulation', id='pause-simulation-button', n_clicks=0),
-                    dmc.Button('Reset Simulation', id='reset-simulation-button', n_clicks=0),
-                    dmc.Button('Clear Objects', id='clear-objects-button', n_clicks=0),
-                    dmc.Button('Add Blue Object', id='add-blue-button', n_clicks=0),
-                    dmc.Button('Add Red Object', id='add-red-button', n_clicks=0)
+    forceColorScheme="dark",
+    children=[
+        html.Div([
+            dmc.Grid([
+                dmc.GridCol(children=[
+                    dmc.Stack(children=[
+                        dmc.Group([
+                            dmc.Text('Inputs:\n'),
+                            dmc.Button("Load Input", id="load-input-button", variant='overlay', fullWidth=True),
+                            dmc.Button("Save Input", id="save-input-button", variant='overlay', fullWidth=True),
+                        ]),
+                        dmc.Group([
+                            dmc.Text('Simulation Control:\n'),
+                            dmc.Button('Run Simulation', id='run-simulation-button', n_clicks=0, fullWidth=True, size='l'),
+                            dmc.Button('One Step', id='one-step-button', n_clicks=0, fullWidth=True),
+                            dmc.Button('Pause / Resume Simulation', id='pause-simulation-button', n_clicks=0, color='red', fullWidth=True),
+                            dmc.Button('Reset Simulation', id='reset-simulation-button', n_clicks=0, color='red', fullWidth=True),
+                        ]),
+                        dmc.Group([
+                            dmc.Text('Objects:\n'),
+                            dmc.Button('Add Blue Object', id='add-blue-button', n_clicks=0, color='green', fullWidth=True),
+                            dmc.Button('Add Red Object', id='add-red-button', n_clicks=0, color='red', fullWidth=True),
+                            dmc.Button('Clear Objects', id='clear-objects-button', n_clicks=0, fullWidth=True),
+                        ]),
+                    ],
+                        gap='s',
+                        align='center',
+                    )
                 ],
-                    gap='s',
-                    align='left',
-                )
-            ],
-                span=2
-            ),
+                    style={'padding-top': '30px'},
+                    span=2
+                ),
 
-            dmc.GridCol(children=[
-                dl.Map(id="leaflet-map", style={'height': '95vh', 'backgroundColor': 'white'},
-                       center=[center_lat, center_lng],
-                       bounds=[southwest_bound, northeast_bound],
-                       zoom=2,
-                       crs="Simple",
-                       children=[
-                           dl.LayerGroup(id="object-markers"),
+                dmc.GridCol(children=[
+                    dl.Map(id="leaflet-map", style={'height': '95vh', 'backgroundColor': 'white'},
+                           center=[center_lat, center_lng],
+                           bounds=[southwest_bound, northeast_bound],
+                           zoom=2,
+                           crs="Simple",
+                           children=[
+                               dl.LayerGroup(id="object-markers"),
 
-                           dl.FeatureGroup(
-                               [dl.EditControl(id="edit_control", position="topleft",
-                                               draw=dict(
-                                                   marker=True,
-                                                   circle=False,
-                                                   circlemarker=False,
-                                                   polygon=False,
-                                                   polyline=False,
-                                                   rectangle=False
-                                               )
-                                               )]),
-                       ]),
-            ],
-                span=5
-            ),
+                               dl.FeatureGroup(
+                                   [dl.EditControl(id="edit_control", position="topleft",
+                                                   draw=dict(
+                                                       marker=True,
+                                                       circle=False,
+                                                       circlemarker=False,
+                                                       polygon=False,
+                                                       polyline=False,
+                                                       rectangle=False
+                                                   )
+                                                   )]),
+                           ]),
+                ],
+                    style={'padding-top': '30px'},
+                    span=5
+                ),
 
-            dmc.GridCol(children=[
-                dcc.Graph(id='live-update-graph', style={'height': '95vh'}),
-                dcc.Interval(
-                    id='interval-component',
-                    interval=500,  # Update every 500 milliseconds
-                    n_intervals=0,
-                    disabled=True
+                dmc.GridCol(children=[
+                    dcc.Graph(id='live-update-graph', style={'height': '95vh'}),
+                    dcc.Interval(
+                        id='interval-component',
+                        interval=500,  # Update every 500 milliseconds
+                        n_intervals=0,
+                        disabled=True
+                    ),
+                ],
+                    style={'padding-top': '30px'},
+                    span=5
                 ),
             ],
-                span=5
-            ),
+                style={'padding-left': '10px', 'padding-right': '10px'},),
+            html.Div(id='trigger'),
+            html.Div(id='red_object_alt_callback'),
         ]),
-        html.Div(id='trigger'),
-        html.Div(id='red_object_alt_callback')
-    ]),
+    ]
 )
 
 
@@ -241,8 +257,12 @@ def update_red_object(new_alt, new_vel, new_angle, new_speed, new_delete):
 
     if not ctx.triggered:
         return no_update
+    alive_red_objects = []
+    for red_object in simulation_manager.env.red_object_list:
+        if red_object.i_am_alive:
+            alive_red_objects.append(red_object)
 
-    for i, red_object in enumerate(simulation_manager.env.red_object_list):
+    for i, red_object in enumerate(alive_red_objects):
         # Check if this is the triggered input and if n_clicks is 0
         if ctx.triggered_id['index'] == red_object.id:
             if new_vel[i] is None or new_alt[i] is None:
@@ -326,14 +346,22 @@ def initial_graph(_):
               Input('run-simulation-button', 'n_clicks'),
               prevent_initial_call=True)
 def run_simulation(n_clicks):
+    if len(simulation_manager.env.red_object_list) < 1 or len(simulation_manager.env.blue_object_list) < 1:
+        return no_update
+
     return not n_clicks > 0
 
 # Callback to pause / resume the simulation
 @app.callback(Output('interval-component', 'disabled', allow_duplicate=True),
+
+                Output('pause-simulation-button', 'color'),
                 Input('pause-simulation-button', 'n_clicks'),
                 prevent_initial_call=True)
 def pause_simulation(n_clicks):
-    return not n_clicks % 2 == 0
+    if len(simulation_manager.env.red_object_list) < 1 or len(simulation_manager.env.blue_object_list) < 1:
+        return no_update
+
+    return not n_clicks % 2 == 0, 'red' if n_clicks % 2 == 0 else 'green'
 
 
 # Callback to reset the simulation
@@ -353,6 +381,8 @@ def reset_simulation(_):
                 Input('one-step-button', 'n_clicks'),
                 prevent_initial_call=True)
 def one_step(_):
+    if len(simulation_manager.env.red_object_list) < 1 or len(simulation_manager.env.blue_object_list) < 1:
+        return no_update
 
     action = simulation_manager.env.take_action()
     obs, reward, done, _ = simulation_manager.step(action)

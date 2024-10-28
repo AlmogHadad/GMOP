@@ -25,14 +25,9 @@ def create_graph(simulation_manager: SimulationManager):
 
     # Set layout for 3D map
     fig.update_layout(
-        title='UAV Interceptor Visualization',
         uirevision='constant',  # Maintain user interactions (zoom, pan, etc.)
-        scene=dict(
-            xaxis=dict(range=[-100, 100], autorange=False),
-            yaxis=dict(range=[-100, 100], autorange=False),
-            zaxis=dict(range=[0, 100], autorange=False),
-        ),
-        scene_camera=dict(projection=dict(type='orthographic'))
+		scene=dict(zaxis=dict(range=[0, 100], autorange=False))
+
     )
 
     # Set layout for 2D map
