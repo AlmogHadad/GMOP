@@ -22,7 +22,6 @@ class AlgorithmsEnv(gym.Env):
         for blue_object in self.blue_object_list:
             blue_object.reset()
 
-        return np.concatenate((self.blue_object_list[0].position, self.red_object_list[0].position))
 
     def step(self, action):
         # red object step
