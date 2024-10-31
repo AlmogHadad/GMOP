@@ -39,8 +39,8 @@ app.layout = dmc.MantineProvider(
                     dmc.Stack(children=[
                         dmc.Group([
                             dmc.Text('Inputs:\n'),
-                            dmc.Button("Load Input", id="load-input-button", variant='overlay', fullWidth=True),
-                            dmc.Button("Save Input", id="save-input-button", variant='overlay', fullWidth=True),
+                            dmc.Button("Load Input", id="load-input-button", color='blue', n_clicks=0, fullWidth=True),
+                            dmc.Button("Save Input", id="save-input-button", color='blue', n_clicks=0, fullWidth=True),
                         ]),
                         dmc.Group([
                             dmc.Text('Simulation Control:\n'),

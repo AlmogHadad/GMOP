@@ -101,7 +101,8 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                                     dcc.Input(
                                         id={"type": "blue_object_speed", "index": blue_object.id},
                                         type='number',
-                                        placeholder=f'{blue_object.max_speed}'
+                                        placeholder=f'{blue_object.max_speed}',
+                                        style = {"marginBottom": "10px"}
                                     ),
                                     html.Br(),
                                     dmc.Button(
@@ -110,7 +111,7 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                                         size="sm",
                                         id={"type": "blue_object_delete", "index": blue_object.id},
                                     )
-                                ])
+                                ], style={"padding": "10px", "borderRadius": "5px", "backgroundColor": "#f9f9f9"})
                             ]
                         )
                     ]
@@ -138,21 +139,24 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                                         id={"type": "red_object_alt", "index": red_object.id},
                                         type='number',
                                         value=red_object.position[2],
-                                        step=1
+                                        step=1,
+                                        style={"marginBottom": "10px"}
                                     ),
                                     html.Br(),
                                     html.Label("Velocity:"),
                                     dcc.Input(
                                         id={"type": "red_object_velocity", "index": red_object.id},
                                         type='text',
-                                        value=f'{red_object.velocity[0]: .1f}, {red_object.velocity[1]: .1f}, {red_object.velocity[2]: .1f}'
+                                        value=f'{red_object.velocity[0]: .1f}, {red_object.velocity[1]: .1f}, {red_object.velocity[2]: .1f}',
+                                        style={"marginBottom": "10px"}
                                     ),
                                     html.Br(),
                                     html.Label("Angle:"),
                                     dcc.Input(
                                         id={"type": "red_object_angle", "index": red_object.id},
                                         type='number',
-                                        value=f'{velocity_to_degrees(red_object.velocity[0], red_object.velocity[1]): .1f}'
+                                        value=f'{velocity_to_degrees(red_object.velocity[0], red_object.velocity[1]): .1f}',
+                                        style={"marginBottom": "10px"}
                                     ),
                                     html.Br(),
                                     html.Label("Speed:"),
@@ -160,6 +164,7 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                                         id={"type": "red_object_speed", "index": red_object.id},
                                         type='number',
                                         value=f'{np.linalg.norm(red_object.velocity[:2]): .1f}',
+                                        style={"marginBottom": "10px"}
                                     ),
                                     html.Br(),
                                     dmc.Button(
@@ -168,7 +173,7 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                                         size="sm",
                                         id={"type": "red_object_delete", "index": red_object.id},
                                     )
-                                ])
+                                ], style={"padding": "10px", "borderRadius": "5px", "backgroundColor": "#f9f9f9"})
                             ]
                         )
                     ]
