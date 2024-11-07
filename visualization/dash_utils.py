@@ -102,16 +102,17 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                                         id={"type": "blue_object_speed", "index": blue_object.id},
                                         type='number',
                                         placeholder=f'{blue_object.max_speed}',
-                                        style = {"marginBottom": "10px"}
+                                        style = {"marginBottom": "10px", "borderRadius": "5px"},
                                     ),
                                     html.Br(),
                                     dmc.Button(
                                         children="Delete",
                                         color="red",
                                         size="sm",
+                                        fullWidth=True,
                                         id={"type": "blue_object_delete", "index": blue_object.id},
                                     )
-                                ], style={"padding": "10px", "borderRadius": "5px", "backgroundColor": "#f9f9f9"})
+                                ], style={"padding": "10px", "borderRadius": "5px", "backgroundColor": "#e0e0e0"})
                             ]
                         )
                     ]
@@ -134,46 +135,72 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                         dl.Popup(
                             children=[
                                 html.Div([
-                                    html.Label("Altitude:"),
-                                    dcc.Input(
-                                        id={"type": "red_object_alt", "index": red_object.id},
-                                        type='number',
-                                        value=red_object.position[2],
-                                        step=1,
-                                        style={"marginBottom": "10px"}
-                                    ),
+                                    dmc.Grid([
+                                        dmc.GridCol([
+                                            html.Label("Altitude:"),
+                                        ], span=4),
+                                        dmc.GridCol([
+                                            dcc.Input(
+                                                id={"type": "red_object_alt", "index": red_object.id},
+                                                type='number',
+                                                value=red_object.position[2],
+                                                step=1,
+                                                style={"borderRadius": "5px"}
+
+                                            ),
+                                        ], span=8),
+                                    ]),
                                     html.Br(),
-                                    html.Label("Velocity:"),
-                                    dcc.Input(
-                                        id={"type": "red_object_velocity", "index": red_object.id},
-                                        type='text',
-                                        value=f'{red_object.velocity[0]: .1f}, {red_object.velocity[1]: .1f}, {red_object.velocity[2]: .1f}',
-                                        style={"marginBottom": "10px"}
-                                    ),
+                                    dmc.Grid([
+                                        dmc.GridCol([
+                                            html.Label("Velocity:"),
+                                        ], span=4),
+                                        dmc.GridCol([
+                                            dcc.Input(
+                                                id={"type": "red_object_velocity", "index": red_object.id},
+                                                type='text',
+                                                value=f'{red_object.velocity[0]: .1f}, {red_object.velocity[1]: .1f}, {red_object.velocity[2]: .1f}',
+                                                style={"borderRadius": "5px"}
+                                            ),
+                                        ], span=8),
+                                    ]),
                                     html.Br(),
-                                    html.Label("Angle:"),
-                                    dcc.Input(
-                                        id={"type": "red_object_angle", "index": red_object.id},
-                                        type='number',
-                                        value=f'{velocity_to_degrees(red_object.velocity[0], red_object.velocity[1]): .1f}',
-                                        style={"marginBottom": "10px"}
-                                    ),
+                                    dmc.Grid([
+                                        dmc.GridCol([
+                                            html.Label("Angle:"),
+                                        ], span=4),
+                                        dmc.GridCol([
+                                            dcc.Input(
+                                                id={"type": "red_object_angle", "index": red_object.id},
+                                                type='number',
+                                                value=f'{velocity_to_degrees(red_object.velocity[0], red_object.velocity[1]): .1f}',
+                                                style={"borderRadius": "5px"}
+                                            ),
+                                        ], span=8),
+                                    ]),
                                     html.Br(),
-                                    html.Label("Speed:"),
-                                    dcc.Input(
-                                        id={"type": "red_object_speed", "index": red_object.id},
-                                        type='number',
-                                        value=f'{np.linalg.norm(red_object.velocity[:2]): .1f}',
-                                        style={"marginBottom": "10px"}
-                                    ),
+                                    dmc.Grid([
+                                        dmc.GridCol([
+                                            html.Label("Speed:"),
+                                        ], span=4),
+                                        dmc.GridCol([
+                                            dcc.Input(
+                                                id={"type": "red_object_speed", "index": red_object.id},
+                                                type='number',
+                                                value=f'{np.linalg.norm(red_object.velocity[:2]): .1f}',
+                                                style={"borderRadius": "5px"}
+                                            ),
+                                        ], span=8),
+                                    ]),
                                     html.Br(),
                                     dmc.Button(
                                         children="Delete",
                                         color="red",
                                         size="sm",
+                                        fullWidth=True,
                                         id={"type": "red_object_delete", "index": red_object.id},
                                     )
-                                ], style={"padding": "10px", "borderRadius": "5px", "backgroundColor": "#f9f9f9"})
+                                ], style={"padding": "10px", "borderRadius": "5px", "backgroundColor": "#e0e0e0", "width": "300px"})
                             ]
                         )
                     ]
