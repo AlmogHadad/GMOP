@@ -43,27 +43,55 @@ class AlgorithmsEnv(gym.Env):
 
     def take_action(self):
         actions = []
-        for i in range(min(len(self.red_object_list), len(self.blue_object_list))):
-            # Calculate the direction vector from the interceptor to the target
-            red_trajectory_position, red_trajectory_time = tp.red_trajectory_prediction(self.red_object_list[i].position,
-                                                                                        self.red_object_list[i].velocity)
-            # choose which trajectory to follow based on the distance
+        red_object_list, blue_object_list = reorder_objects_by_distance(self.red_object_list, self.blue_object_list)
+
+        num_objects = min(len(red_object_list), len(blue_object_list))
+
+        for i in range(num_objects):
+            # Predict red trajectory position and time
+            red_positions, red_times = tp.trajectory_prediction_position_velocity(
+                red_object_list[i].position,
+                red_object_list[i].velocity
+            )
+
+            # Find the closest red trajectory point based on blue object speed and position
+            blue_position = blue_object_list[i].position
+            blue_max_speed = blue_object_list[i].max_speed
+
             closest_index = 0
-            closest_distance = tp.blue_trajectory_prediction_time(self.blue_object_list[i].position,
-                                                                  self.blue_object_list[i].max_speed,
-                                                                  red_trajectory_position[i])
-            # find the closest point in the red trajectory
-            for j in range(1, len(red_trajectory_position)):
-                blue_object_prediction_time = tp.blue_trajectory_prediction_time(self.blue_object_list[i].position,
-                                                                                 self.blue_object_list[i].max_speed,
-                                                                                 red_trajectory_position[j])
-                if closest_distance > abs(blue_object_prediction_time - red_trajectory_time[j]):
-                    closest_distance = abs(blue_object_prediction_time - red_trajectory_time[j])
+            closest_distance = tp.trajectory_prediction_to_target(
+                blue_position, blue_max_speed, red_positions[0]
+            )
+
+            for j, red_pos in enumerate(red_positions[1:], start=1):
+                blue_prediction_time = tp.trajectory_prediction_to_target(
+                    blue_position, blue_max_speed, red_pos
+                )
+                distance = abs(blue_prediction_time - red_times[j])
+
+                if distance < closest_distance:
+                    closest_distance = distance
                     closest_index = j
 
-            actions.append((red_trajectory_position[closest_index] - self.blue_object_list[i].position).astype(np.float64))
+            # Calculate the direction vector and append to actions
+            action_direction = (red_positions[closest_index] - blue_position).astype(np.float64)
+            actions.append(action_direction)
 
-        # extend the actions to the length of the blue object list
-        actions.extend([np.array([0, 0, 0], dtype=np.float64) for _ in range(len(self.blue_object_list) - len(actions))])
+        # Fill remaining actions with zero vectors if blue_object_list is longer
+        actions.extend([np.zeros(3, dtype=np.float64)] * (len(blue_object_list) - num_objects))
 
         return actions
+
+
+def reorder_objects_by_distance(red_object_list: list[RedObject], blue_object_list: list[BlueObject]) -> tuple[list[RedObject], list[BlueObject]]:
+    # Calculate the distance between each red object and blue object
+    distances = np.zeros((len(red_object_list), len(blue_object_list)), dtype=np.float64)
+    for i, red_object in enumerate(red_object_list):
+        for j, blue_object in enumerate(blue_object_list):
+            distances[i, j] = np.linalg.norm(red_object.position - blue_object.position)
+
+    # Find the closest red object to each blue object
+    red_object_indices = np.argmin(distances, axis=0)
+    red_objects = [red_object_list[i] for i in red_object_indices]
+
+    return red_objects, blue_object_list
