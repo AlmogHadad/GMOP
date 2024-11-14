@@ -11,13 +11,13 @@ def create_graph(simulation_manager: SimulationManager):
     # Create a subplot with 1 row and 2 columns
     fig = go.Figure()
 
-    # Add blue objects to 3D map
-    for blue_object in simulation_manager.env.blue_object_list:
-        fig.add_trace(blue_object.plot_object_3d())
-
     # Add red objects to 3D map
     for red_object in simulation_manager.env.red_object_list:
-        fig.add_trace(red_object.plot_object_3d())
+        fig.add_traces(red_object.plot_object_3d())
+
+    # Add blue objects to 3D map
+    for blue_object in simulation_manager.env.blue_object_list:
+        fig.add_traces(blue_object.plot_object_3d())
 
     # Add launch sites to 3D map
     for blue_object in simulation_manager.env.blue_object_list:
@@ -26,7 +26,12 @@ def create_graph(simulation_manager: SimulationManager):
     # Set layout for 3D map
     fig.update_layout(
         uirevision='constant',  # Maintain user interactions (zoom, pan, etc.)
-		scene=dict(zaxis=dict(range=[0, 100], autorange=False))
+		scene=dict(zaxis=dict(range=[0, 100], autorange=False),
+                   yaxis=dict(range=[-100, 100], autorange=False),
+                   xaxis=dict(range=[-100, 100], autorange=False),
+                   aspectmode='cube',
+                   camera=dict(eye=dict(x=1.5, y=1.5, z=1.5))
+                   )
 
     )
 
