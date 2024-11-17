@@ -25,7 +25,7 @@ class SimulationManager:
         # check if there is blue object that is near red object, if so, kill the both
         for blue_object in self.env.blue_object_list:
             for red_object in self.env.red_object_list:
-                if np.linalg.norm(blue_object.position - red_object.position) < 1:
+                if np.linalg.norm(blue_object.position - red_object.position) <= 1:
                     blue_object.i_am_alive = False
                     red_object.i_am_alive = False
 
