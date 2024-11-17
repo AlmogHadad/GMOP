@@ -11,13 +11,13 @@ def create_graph(simulation_manager: SimulationManager):
     # Create a subplot with 1 row and 2 columns
     fig = go.Figure()
 
-    # Add blue objects to 3D map
-    for blue_object in simulation_manager.env.blue_object_list:
-        fig.add_trace(blue_object.plot_object_3d())
-
     # Add red objects to 3D map
     for red_object in simulation_manager.env.red_object_list:
-        fig.add_trace(red_object.plot_object_3d())
+        fig.add_traces(red_object.plot_object_3d())
+
+    # Add blue objects to 3D map
+    for blue_object in simulation_manager.env.blue_object_list:
+        fig.add_traces(blue_object.plot_object_3d())
 
     # Add launch sites to 3D map
     for blue_object in simulation_manager.env.blue_object_list:
@@ -25,14 +25,14 @@ def create_graph(simulation_manager: SimulationManager):
 
     # Set layout for 3D map
     fig.update_layout(
-        title='UAV Interceptor Visualization',
         uirevision='constant',  # Maintain user interactions (zoom, pan, etc.)
-        scene=dict(
-            xaxis=dict(range=[-100, 100], autorange=False),
-            yaxis=dict(range=[-100, 100], autorange=False),
-            zaxis=dict(range=[0, 100], autorange=False),
-        ),
-        scene_camera=dict(projection=dict(type='orthographic'))
+		scene=dict(zaxis=dict(range=[0, 100], autorange=False),
+                   yaxis=dict(range=[-100, 100], autorange=False),
+                   xaxis=dict(range=[-100, 100], autorange=False),
+                   aspectmode='cube',
+                   camera=dict(eye=dict(x=1.5, y=1.5, z=1.5))
+                   )
+
     )
 
     # Set layout for 2D map
@@ -105,10 +105,19 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                                     html.Label("Speed:"),
                                     dcc.Input(
                                         id={"type": "blue_object_speed", "index": blue_object.id},
-                                        type='text',
-                                        value=f'{blue_object.max_speed}'
+                                        type='number',
+                                        placeholder=f'{blue_object.max_speed}',
+                                        style = {"marginBottom": "10px", "borderRadius": "5px"},
+                                    ),
+                                    html.Br(),
+                                    dmc.Button(
+                                        children="Delete",
+                                        color="red",
+                                        size="sm",
+                                        fullWidth=True,
+                                        id={"type": "blue_object_delete", "index": blue_object.id},
                                     )
-                                ])
+                                ], style={"padding": "10px", "borderRadius": "5px", "backgroundColor": "#e0e0e0"})
                             ]
                         )
                     ]
@@ -131,21 +140,72 @@ def create_leaflet_map(simulation_manager: SimulationManager):
                         dl.Popup(
                             children=[
                                 html.Div([
-                                    html.Label("Altitude:"),
-                                    dcc.Input(
-                                        id={"type": "red_object_alt", "index": red_object.id},
-                                        type='number',
-                                        value=red_object.position[2],
-                                        step=1
-                                    ),
+                                    dmc.Grid([
+                                        dmc.GridCol([
+                                            html.Label("Altitude:"),
+                                        ], span=4),
+                                        dmc.GridCol([
+                                            dcc.Input(
+                                                id={"type": "red_object_alt", "index": red_object.id},
+                                                type='number',
+                                                value=red_object.position[2],
+                                                step=1,
+                                                style={"borderRadius": "5px"}
+
+                                            ),
+                                        ], span=8),
+                                    ]),
                                     html.Br(),
-                                    html.Label("Velocity:"),
-                                    dcc.Input(
-                                        id={"type": "red_object_velocity", "index": red_object.id},
-                                        type='text',
-                                        value=f'{red_object.velocity[0]}, {red_object.velocity[1]}, {red_object.velocity[2]}'
-                                    ),
-                                ])
+                                    dmc.Grid([
+                                        dmc.GridCol([
+                                            html.Label("Velocity:"),
+                                        ], span=4),
+                                        dmc.GridCol([
+                                            dcc.Input(
+                                                id={"type": "red_object_velocity", "index": red_object.id},
+                                                type='text',
+                                                value=f'{red_object.velocity[0]: .1f}, {red_object.velocity[1]: .1f}, {red_object.velocity[2]: .1f}',
+                                                style={"borderRadius": "5px"}
+                                            ),
+                                        ], span=8),
+                                    ]),
+                                    html.Br(),
+                                    dmc.Grid([
+                                        dmc.GridCol([
+                                            html.Label("Angle:"),
+                                        ], span=4),
+                                        dmc.GridCol([
+                                            dcc.Input(
+                                                id={"type": "red_object_angle", "index": red_object.id},
+                                                type='number',
+                                                value=f'{velocity_to_degrees(red_object.velocity[0], red_object.velocity[1]): .1f}',
+                                                style={"borderRadius": "5px"}
+                                            ),
+                                        ], span=8),
+                                    ]),
+                                    html.Br(),
+                                    dmc.Grid([
+                                        dmc.GridCol([
+                                            html.Label("Speed:"),
+                                        ], span=4),
+                                        dmc.GridCol([
+                                            dcc.Input(
+                                                id={"type": "red_object_speed", "index": red_object.id},
+                                                type='number',
+                                                value=f'{np.linalg.norm(red_object.velocity[:2]): .1f}',
+                                                style={"borderRadius": "5px"}
+                                            ),
+                                        ], span=8),
+                                    ]),
+                                    html.Br(),
+                                    dmc.Button(
+                                        children="Delete",
+                                        color="red",
+                                        size="sm",
+                                        fullWidth=True,
+                                        id={"type": "red_object_delete", "index": red_object.id},
+                                    )
+                                ], style={"padding": "10px", "borderRadius": "5px", "backgroundColor": "#e0e0e0", "width": "300px"})
                             ]
                         )
                     ]
@@ -154,3 +214,27 @@ def create_leaflet_map(simulation_manager: SimulationManager):
 
     # Combine markers and return them as map children
     return dl.LayerGroup(children=markers, id="blue-object-markers")
+
+
+def calc_velocity_from_angle(current_velocity, new_angle) -> np.ndarray:
+    # Calculate the magnitude of the current velocity
+    magnitude = np.linalg.norm(current_velocity[:2])
+
+    # Calculate the new x and y components of the velocity
+    vx = magnitude * math.cos(math.radians(new_angle))
+    vy = magnitude * math.sin(math.radians(new_angle))
+
+    # Return the new velocity vector
+    return np.array([vx, vy, current_velocity[2]])
+
+
+def calc_velocity_from_speed(current_velocity, new_speed) -> np.ndarray:
+    # Calculate the magnitude of the current velocity
+    magnitude = np.linalg.norm(current_velocity[:2])
+
+    # Calculate the new x and y components of the velocity
+    vx = (current_velocity[0] / magnitude) * new_speed
+    vy = (current_velocity[1] / magnitude) * new_speed
+
+    # Return the new velocity vector
+    return np.array([vx, vy, current_velocity[2]])

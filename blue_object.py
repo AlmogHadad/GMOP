@@ -45,11 +45,26 @@ class BlueObjectBase:
     def plot_object_3d(self):
         if not self.i_am_alive:
             return go.Scatter3d()
-        return go.Scatter3d(x=[self.position[0]], y=[self.position[1]], z=[self.position[2]],
+        marker_trace = go.Scatter3d(x=[self.position[0]], y=[self.position[1]], z=[self.position[2]],
                             mode='markers',
                             marker=dict(size=10, color='blue'),
                             text=f'Blue Object:\n id: {self.id} \n position: {self.position} \n max_speed: {self.max_speed}',
-                            showlegend=False)
+                            showlegend=False,
+                            )
+
+        # Text trace for the plane symbol positioned above the marker
+        text_trace = go.Scatter3d(
+            x=[self.position[0]],
+            y=[self.position[1]],
+            z=[self.position[2]],  # Offset text above the marker
+            mode='text',
+            text='✈',  # Plane symbol
+            textfont=dict(size=18, color='blue'),
+            showlegend=False,
+        )
+
+        # Return both traces in a list
+        return [marker_trace, text_trace]
 
     def plot_object_2d(self):
         if not self.i_am_alive:
